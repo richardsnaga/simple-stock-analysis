@@ -1,0 +1,31 @@
+# ======================
+# Python / FastAPI
+# ======================
+
+# Virtual environment
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database files
+*.db
+*.sqlite3
+
+# Alembic migrations cache
+alembic/versions/*.pyc
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+
+note.txt
