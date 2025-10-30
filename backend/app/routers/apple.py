@@ -29,5 +29,4 @@ def get_db():
 @router.get("/")
 def list_apples(db: Session = Depends(get_db)):
     apples = get_apples(db)
-    print(f"apples >>{apples[0].price}")
     return JSONResponse(content={"data": jsonable_encoder(apples)})
