@@ -45,7 +45,6 @@ const Sidebar = ({ open, setOpen }: SidebarProps) => {
         <List>
           {[
             { text: "Dashboard", icon: <Home />, link: "/" },
-            { text: "Settings", icon: <Settings />, link: "/apps/tes" },
           ].map((item) => (
             <ListItem key={item.text} disablePadding>
               <ListItemButton component={Link} href={item.link}>
