@@ -18,7 +18,7 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/{symbol}", response_model=List[ReturnItem])
+@router.get("/{symbol}")
 def get_returns(symbol: str, db: Session = Depends(get_db)):
     if symbol.upper() == "AAPL":
         data = get_apples(db)
@@ -35,4 +35,5 @@ def get_returns(symbol: str, db: Session = Depends(get_db)):
         r = (prices[i] - prices[i-1]) / prices[i-1]
         returns.append(ReturnItem(date=dates[i], return_=r))
 
-    return returns
+    # return returns
+    return JSONResponse(content={"data": jsonable_encoder(returns)})
