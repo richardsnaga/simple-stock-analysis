@@ -14,20 +14,46 @@ const ResultsTable = ({ results }: ResultsTableProps) => {
     const rowsWithId = results.map((row, index) => ({ id: index, ...row }));
     const columns: GridColDef[] = [
         { field: 'date', headerName: 'Date', width: 200 },
-         { 
-    field: 'daily_return', 
-    headerName: 'Daily Return', 
-    width: 200,
-    valueFormatter: (params:any) => {
-      // Convert to percentage string with 2 decimal places
-      console.log('valuee',params)
-      const value = Number(params) * 100;
-      return `${value.toFixed(2)}%`;
-    }
-  },
-        { field: 'historical_var', headerName: 'historical_var', width: 200 },
-        { field: 'parametric_var', headerName: 'parametric_var', width: 200 },
-        { field: 'price', headerName: 'price', width: 200 },
+        { 
+            field: 'daily_return', 
+            headerName: 'Daily Return', 
+            width: 200,
+            valueFormatter: (params:any) => {
+            const value = Number(params) * 100;
+            return `${value.toFixed(2)}%`;
+            }
+        },
+        { 
+            field: 'historical_var', 
+            headerName: 'Historical Var', 
+            width: 200,
+            valueFormatter: (params:any) => {
+            const value = Number(params) * 100;
+            return `${value.toFixed(2)}%`;
+            }
+        },
+        { 
+            field: 'parametric_var', 
+            headerName: 'Parametic Var', 
+            width: 200,
+            valueFormatter: (params:any) => {
+            const value = Number(params) * 100;
+            return `${value.toFixed(2)}%`;
+            }
+        },
+        { 
+            field: 'price', 
+            headerName: 'Price (USD)', 
+            width: 200,
+            valueFormatter: (params) => {
+            if (params == null) return '-';
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2, // tampilkan 2 angka desimal
+            }).format(Number(params));
+            }
+        },
     ];
   
   return (

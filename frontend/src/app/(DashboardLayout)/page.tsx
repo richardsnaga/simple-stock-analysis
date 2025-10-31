@@ -12,24 +12,19 @@ import {
   Select,
   Typography,
   CircularProgress,
+  Card,
+  CardContent,
 } from "@mui/material";
 import Chart from "../components/Chart";
 import ResultsTable from "../components/ResultsTable";
-
-interface ApiResponse {
-  date: string[];
-  return_: number[];
-  varHistorical: number;
-  varParametric: number;
-  analysisText: string;
-}
 
 const Page = () => {
   const [stock, setStock] = useState("");
   const [confidence, setConfidence] = useState("");
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<ApiResponse | null>(null);
+  const [data, setData] = useState(null);
   const [dataVar, setDataVar] = useState([]);
+  const [analysis, setAnalysis] = useState("")
 
   const handleGenerate = async () => {
     // if (!stock || !confidence)
@@ -37,12 +32,15 @@ const Page = () => {
 
     setLoading(true);
     setData(null);
+    setAnalysis("");
     setDataVar([]);
     try {
       const res = await axios.get(`/api/returns/${stock}`);
       const resVar = await axios.get(`/api/var/${stock}`, { params: { 'level': confidence}});
+      console.log('resvar',resVar)
       setData(res.data);
-      setDataVar(resVar.data);
+      setDataVar(resVar.data.data);
+      setAnalysis(resVar.data.analysis)
     } catch (err) {
       console.error(err);
       alert("Failed to fetch data.");
@@ -77,7 +75,6 @@ const Page = () => {
             label="Confidence Level"
             onChange={(e) => setConfidence(e.target.value)}
           >
-            <MenuItem value="90">90%</MenuItem>
             <MenuItem value="95">95%</MenuItem>
             <MenuItem value="99">99%</MenuItem>
           </Select>
@@ -97,10 +94,16 @@ const Page = () => {
             results={dataVar}
           /></div>
 
-          <Typography variant="h6" sx={{ mt: 3 }}>
-            Analysis
-          </Typography>
-          <Typography>{data.analysisText}</Typography>
+          <Card sx={{ mt: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Analysis
+              </Typography>
+              <Typography variant="body1">
+                {analysis}
+              </Typography>
+            </CardContent>
+          </Card>
         </Box>
       )}
     </Container>

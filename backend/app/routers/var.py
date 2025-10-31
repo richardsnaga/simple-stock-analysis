@@ -49,7 +49,35 @@ def rolling_var(returns, window=30, confidence_level=0.95):
 
     return historical_vars, parametric_vars
 
-@router.get("/{symbol}", response_model=List[VaRDailyItem])
+def generate_analysis(returns, historical_vars, parametric_vars, confidence_level):
+    mean_return = np.mean(returns)
+    std_return = np.std(returns)
+    latest_hvar = historical_vars[-1]
+    latest_pvar = parametric_vars[-1]
+
+    direction = "positive" if mean_return > 0 else "negative"
+    analysis = (
+        f"The stock shows an average {direction} daily return of {mean_return * 100:.2f}% "
+        f"with a volatility of {std_return * 100:.2f}%. "
+        f"At a {int(confidence_level * 100)}% confidence level, "
+        f"the Historical VaR is approximately {latest_hvar * 100:.2f}% "
+        f"and the Parametric VaR is {latest_pvar * 100:.2f}%. "
+    )
+
+    if latest_hvar > latest_pvar:
+        analysis += (
+            "The Historical VaR indicates higher potential losses than the Parametric VaR, "
+            "suggesting that recent returns are more volatile than the normal distribution assumption."
+        )
+    else:
+        analysis += (
+            "The Parametric VaR is higher than the Historical VaR, "
+            "indicating that risk under normal distribution assumptions is slightly more conservative."
+        )
+
+    return analysis
+
+@router.get("/{symbol}")
 def get_var_daily(
     symbol: str,
     level: float = Query(95, ge=90, le=99),
@@ -83,4 +111,12 @@ def get_var_daily(
             parametric_var=parametric_vars[i],
         ))
 
-    return results
+    # generate analysis summary
+    analysis = generate_analysis(returns, historical_vars, parametric_vars, confidence_level)
+
+    return JSONResponse(
+        content=jsonable_encoder({
+            "data": results,
+            "analysis": analysis
+        })
+    )
