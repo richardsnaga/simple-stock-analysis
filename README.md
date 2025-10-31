@@ -14,7 +14,7 @@ It consists of three main components:
 Clone this repository, start the containers, and open the app:
 
 ```bash
-git clone https://github.com/yourusername/simple-stock-analysis.git
+git clone https://github.com/richardsnaga/simple-stock-analysis.git
 cd simple-stock-analysis
 docker compose up -d
 ```
