@@ -2,7 +2,7 @@ from typing import Union
 from app.db import base
 from fastapi import FastAPI
 from app.db.session import engine
-from app.routers import apple, google, returns
+from app.routers import apple, google, returns, var
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Simple Stock Analysis")
@@ -30,3 +30,4 @@ def read_root():
 app.include_router(apple.router)
 app.include_router(google.router)
 app.include_router(returns.router)
+app.include_router(var.router)
