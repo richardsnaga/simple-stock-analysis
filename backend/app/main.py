@@ -8,9 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title="Simple Stock Analysis")
 
 origins = [
-    "http://localhost:3000",  # frontend Next.js dev
-    "http://127.0.0.1:3000",  # kadang pakai IP
-    # tambahkan domain production di sini
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",  
+    "http://frontend",   
 ]
 
 app.add_middleware(
