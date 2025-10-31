@@ -8,12 +8,11 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 interface ChartProps {
-  // dates: string[];
-  // returns: number[];
   data: any;
+  stock: string;
 }
 
-const Chart: React.FC<ChartProps> = ({ data }) => {
+const Chart: React.FC<ChartProps> = ({ data, stock }) => {
   const dataChart = data.data;
   console.log(
     "data >>",
@@ -57,7 +56,7 @@ const Chart: React.FC<ChartProps> = ({ data }) => {
   return (
     <>
       <Card>
-        <CardHeader title="Historical Return" />
+        <CardHeader title={"Historical Return ("+ (stock ? stock : '') + ")"} />
         <CardContent>
           <ReactApexChart
             options={options}

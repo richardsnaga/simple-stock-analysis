@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.services.google import get_googles
 from app.services.apple import get_apples
 from app.schemas.var import VaRDailyItem
-from typing import List
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from typing import List, Tuple
+from typing import List
+from scipy.stats import norm
 import numpy as np
 
 router = APIRouter(prefix="/api/var", tags=["var"])
@@ -18,15 +18,15 @@ def get_db():
         yield db
     finally:
         db.close()
-        
+
 def calculate_daily_returns(data):
-    prices = [float(row.price) for row in data]  # konversi ke float
+    prices = [float(row.price) for row in data]
     dates = [row.date for row in data]
-    returns = [(prices[i] - prices[i-1]) / prices[i-1] for i in range(1, len(prices))]
+    returns = [(prices[i] - prices[i - 1]) / prices[i - 1] for i in range(1, len(prices))]
     return dates[1:], prices[1:], returns
 
 def rolling_var(returns, window=30, confidence_level=0.95):
-    returns = [float(r) for r in returns]  # konversi semua ke float
+    returns = np.array(returns, dtype=float)
     historical_vars = []
     parametric_vars = []
 
@@ -35,43 +35,52 @@ def rolling_var(returns, window=30, confidence_level=0.95):
             historical_vars.append(None)
             parametric_vars.append(None)
             continue
-        window_returns = returns[i-window:i]
-        h_var = -np.percentile(window_returns, (1-confidence_level)*100)
+
+        window_returns = returns[i - window:i]
+        h_var = -np.percentile(window_returns, (1 - confidence_level) * 100)
+        
         mu = np.mean(window_returns)
         sigma = np.std(window_returns)
-        z = abs(np.percentile(np.random.normal(0,1,100000), (1-confidence_level)*100))
-        p_var = -(mu + z * sigma)
+        z = norm.ppf(1 - confidence_level)
+        p_var = -(mu - z * sigma)
 
         historical_vars.append(h_var)
         parametric_vars.append(p_var)
-    
+
     return historical_vars, parametric_vars
 
-# endpoint
 @router.get("/{symbol}", response_model=List[VaRDailyItem])
-def get_var_daily(symbol: str, level: float = Query(95, ge=90, le=99), db: Session = Depends(get_db), window: int = 30):
+def get_var_daily(
+    symbol: str,
+    level: float = Query(95, ge=90, le=99),
+    window: int = 30,
+    db: Session = Depends(get_db)
+):
     symbol = symbol.upper()
     if symbol == "AAPL":
         data = get_apples(db)
     elif symbol == "GOOGL":
         data = get_googles(db)
     else:
-        return []  # atau raise HTTPException(status_code=404, detail="Symbol not found")
+        raise HTTPException(status_code=404, detail="Symbol not found")
 
-    if len(data) < 2:
-        return []
+    if len(data) < window:
+        raise HTTPException(status_code=400, detail="Not enough data to compute VaR")
 
     dates, prices, returns = calculate_daily_returns(data)
     confidence_level = level / 100
-    historical_vars, parametric_vars = rolling_var(returns, window=window, confidence_level=confidence_level)
+    historical_vars, parametric_vars = rolling_var(returns, window, confidence_level)
 
     results = []
     for i in range(len(returns)):
+        if historical_vars[i] is None:
+            continue
         results.append(VaRDailyItem(
             date=dates[i],
             price=prices[i],
             daily_return=returns[i],
-            historical_var=historical_vars[i] if historical_vars[i] is not None else 0,
-            parametric_var=parametric_vars[i] if parametric_vars[i] is not None else 0,
+            historical_var=historical_vars[i],
+            parametric_var=parametric_vars[i],
         ))
+
     return results

@@ -14,6 +14,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Chart from "../components/Chart";
+import ResultsTable from "../components/ResultsTable";
 
 interface ApiResponse {
   date: string[];
@@ -28,6 +29,7 @@ const Page = () => {
   const [confidence, setConfidence] = useState("");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<ApiResponse | null>(null);
+  const [dataVar, setDataVar] = useState([]);
 
   const handleGenerate = async () => {
     // if (!stock || !confidence)
@@ -35,9 +37,12 @@ const Page = () => {
 
     setLoading(true);
     setData(null);
+    setDataVar([]);
     try {
       const res = await axios.get(`/api/returns/${stock}`);
+      const resVar = await axios.get(`/api/var/${stock}`, { params: { 'level': confidence}});
       setData(res.data);
+      setDataVar(resVar.data);
     } catch (err) {
       console.error(err);
       alert("Failed to fetch data.");
@@ -61,8 +66,7 @@ const Page = () => {
             onChange={(e) => setStock(e.target.value)}
           >
             <MenuItem value="AAPL">AAPL</MenuItem>
-            <MenuItem value="TSLA">TSLA</MenuItem>
-            <MenuItem value="MSFT">MSFT</MenuItem>
+            <MenuItem value="GOOGL">GOOGL</MenuItem>
           </Select>
         </FormControl>
 
@@ -86,17 +90,12 @@ const Page = () => {
 
       {data && (
         <Box sx={{ mt: 4 }}>
-          <Chart data={data} />
+          <Chart data={data} stock={stock} />
 
-          <Typography variant="h6" sx={{ mt: 3 }}>
-            Value at Risk (VaR) Results
-          </Typography>
-          {/* <ResultsTable
-            results={[
-              { type: "Historical VaR", value: data.varHistorical },
-              { type: "Parametric VaR", value: data.varParametric },
-            ]}
-          /> */}
+        <div  style={{marginTop: '30px'}}>
+          <ResultsTable
+            results={dataVar}
+          /></div>
 
           <Typography variant="h6" sx={{ mt: 3 }}>
             Analysis
